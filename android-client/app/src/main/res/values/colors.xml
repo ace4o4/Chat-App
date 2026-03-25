@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Nova Launcher Dark Palette -->
+    <color name="colorBg">#0D0D0D</color>
+    <color name="colorSurface">#1A1A1A</color>
+    <color name="colorSurface2">#222222</color>
+    <color name="colorBorder">#2A2A2A</color>
+    <color name="colorAccent">#4FC3F7</color>
+    <color name="colorText">#E0E0E0</color>
+    <color name="colorTextSecondary">#888888</color>
+    <color name="colorOnline">#00E676</color>
+    <color name="colorOffline">#555555</color>
+    <color name="colorDanger">#EF5350</color>
+    <color name="colorBlack">#000000</color>
+    <color name="colorWhite">#FFFFFF</color>
+</resources>

@@ -1,0 +1,54 @@
+Tech Stack Recommendation: Minimalist Gamer Comm App
+1. Frontend / Client Applications
+Electron jaise heavy frameworks (jo poora Chromium browser background mein chalate hain) ko humein bilkul avoid karna hai. Yahan hum resource-efficiency par focus karenge:
+
+Windows Desktop App: Tauri + React
+Core Engine: Tauri (built with Rust). Ye Electron ka sabse best alternative hai. Ye OS ke native webview (WebView2 on Windows) ka use karta hai, jisse RAM usage 90% tak kam ho jata hai aur app ka size sirf kuch MBs mein rehta hai.
+
+UI Framework: React (using .jsx or .tsx files). Isme tum apna pastel, sketchy, aur hand-drawn UI component aaram se bana sakte ho.
+
+Styling: Tailwind CSS. Ye bundle size ko chhota rakhega aur minimal UI design karne mein fast rahega.
+
+Android App: Native Java
+Language: Java (Android SDK). Native development se tumhe OS-level memory management aur garbage collection par exact control milega.
+
+Why Native? Background processes, thread scheduling, aur battery optimization native app mein sabse best handle hote hain. Jab PTT (Push-to-Talk) background mein chalana ho, toh Java ke through native foreground services handle karna sabse memory-efficient hota hai.
+
+(Note: Agar tum ek hi codebase se dono platform target karna chahte ho taaki development fast ho, toh Flutter (Dart) ek strong alternative hai, par Tauri+Java combination tumhe maximum performance aur lowest resource footprint dega).
+
+2. Real-Time Signaling & Presence
+Ye layer doston ko connect karne aur real-time chat ke liye hai.
+
+Signaling Server: Node.js. Single-threaded hone ke bawajood ye I/O heavy WebSockets ke liye perfect hai.
+
+Protocol: Socket.io ya raw WebSockets.
+
+In-Memory Store: Redis. Kaun online hai, kaun kis room mein hai—ye sab data RAM mein store karne ke liye Redis best hai taaki disk I/O requests delay na karein.
+
+3. Voice & Media Engine
+Core Protocol: WebRTC (Web Real-Time Communication).
+
+Audio Constraints (Hardware Offloading):
+- `echoCancellation: true`
+- `noiseSuppression: true`
+- `autoGainControl: true`
+- `channelCount: 1` (Mono channel to halve bandwidth requirements).
+
+Audio Codec: Opus Codec. Ye low-bandwidth situations ke liye best hai. Voice quality clear rehti hai even agar internet slow ho.
+SDP Munging Parameters (Non-negotiable for max quality):
+- Force 48,000 Hz Sample Rate (Fullband audio).
+- Max average bitrate: 64,000 bps (64 kbps).
+- `useinbandfec=1` (Forward Error Correction against packet loss).
+- `usedtx=1` (Discontinuous Transmission to halt packets during silence).
+- Dynamic Jitter Buffer configured to handle packet re-ordering smoothly.
+
+NAT Traversal: Coturn (Open-source STUN/TURN server). Ye ensure karega ki Android aur Windows devices aapas mein connect ho jayein, chahe wo kisi bhi strict firewall ya mobile network ke peeche hon.
+
+4. Backend API & Database
+Ye tumhara permanent data store karega (user accounts, friend lists).
+
+API Framework: Express.js (Node) ya agar tumhe strict type-safety aur high performance chahiye toh Spring Boot (Java) ka use bhi kar sakte ho.
+
+Database: PostgreSQL. Relational data (users, friends, room configs) ke liye sabse reliable.
+
+Authentication: JWT (JSON Web Tokens). Stateless auth se server par memory load nahi padega.

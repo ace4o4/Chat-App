@@ -1,0 +1,79 @@
+System Architecture Document: Minimalist Comm App
+1. High-Level Architecture Overview
+The system follows a distributed client-server model for signaling, presence, and messaging, combined with a Peer-to-Peer (P2P) / Selective Forwarding Unit (SFU) model for voice traffic.
+
+The architecture is divided into 4 core layers:
+
+Client Layer (Windows & Android): The user-facing application.
+
+API & Identity Layer: Handles authentication, friends, and room management.
+
+Real-Time Signaling Layer: Manages online presence and WebRTC connection handshakes.
+
+Media Routing Layer: Handles the actual voice packet transmission.
+
+2. Component Deep-Dive & Resource Strategy
+A. The Client Layer (Split Architecture: Tauri + Java)
+To ensure the app doesn't interfere with heavy games, the client architecture is designed around strict OS-level resource limits.
+
+- Windows Client (Tauri + React): Uses OS-native WebView2, keeping RAM usage extremely low. UI is built with React and Tailwind CSS. Must be a self-contained native .exe.
+- Android Client (Native Java): Uses the Android SDK to strictly manage foreground services for PTT and WebRTC, ensuring battery and RAM efficiency as a native .apk.
+
+Rendering Engine: To achieve the required "sketchy", "hand-drawn" UI with a soft pastel palette without taxing the GPU, the app relies purely on vector graphics and CSS/native components rather than loading multiple image assets into memory.
+
+Memory Management: State managers are scoped to drop unused data immediately. By keeping the heap size small, we minimize page faults and prevent the OS from relying heavily on virtual memory/swap space, which would cause disk I/O bottlenecks during gameplay.
+
+Process Scheduling: When minimized on Windows, background UI threads are actively suspended. The OS scheduler should only give CPU time to the specific WebRTC audio thread and the global hotkey listener.
+
+B. API & Database Layer (Node.js + PostgreSQL)
+This handles all non-real-time requests.
+
+Tech: Node.js (Express) + PostgreSQL.
+
+Responsibilities: Login/Signup, issuing JWTs, storing friend lists (Username#1234), and generating the 6-digit invite codes.
+
+Flow: Client hits REST endpoints over HTTPS. The server responds with JSON. Very lightweight.
+
+C. Signaling & Presence Layer (WebSockets + Redis)
+This is the central nervous system for real-time state.
+
+Tech: Socket.io (or raw WebSockets) + Redis (In-memory data store).
+
+Responsibilities: * Tracking who is online/offline (Presence).
+
+Delivering real-time text chat payloads.
+
+Routing WebRTC SDP offers/answers and ICE candidates between clients.
+
+Why Redis? It stores the volatile state ("User A is in Room B") in RAM for instant access, keeping the main PostgreSQL database free from heavy read/write loads.
+
+D. Media Layer (WebRTC + STUN/TURN)
+This handles the heavy lifting of voice data.
+
+WebRTC Audio Configuration (Crucial for QoS):
+1. Constraints: Hardware limits set during `getUserMedia` (`echoCancellation: true`, `noiseSuppression: true`, `autoGainControl: true`, `channelCount: 1`).
+2. Opus SDP Munging: The local/remote SDP is rewritten to enforce max quality and efficiency (Sample Rate: 48,000 Hz, Bitrate: 64,000 bps, `useinbandfec=1` for FEC, and `usedtx=1` for DTX).
+3. Dynamic Jitter Buffer: Smooths out out-of-order packets caused by network lag.
+
+STUN Server: A lightweight server that simply tells a client its public IP address so it can try to connect directly to another friend (Peer-to-Peer).
+
+TURN Server (Fallback): If two users are behind strict NATs or firewalls (very common in mobile networks), P2P will fail. The TURN server acts as a relay, bouncing the encrypted audio packets between them.
+
+SFU (Optional for Groups): If more than 3 people are in a room, sending P2P audio to everyone duplicates bandwidth. An SFU receives one audio stream from each user and forwards it to the others, saving client-side upload bandwidth.
+
+3. Data Flow: How a Voice Call Connects
+Agent Directive: Follow this sequence strictly for the voice room join logic.
+
+Join Request: Client enters the 6-digit code or clicks the deep link.
+
+WebSocket Handshake: Client connects to the Signaling Server via WebSockets, authenticating with its JWT.
+
+Peer Discovery: Signaling Server notifies other users in the room that a new user is connecting.
+
+WebRTC Negotiation: * Client generates an "Offer" and sends it through the Signaling Server.
+
+Other clients reply with an "Answer" through the Signaling Server.
+
+ICE Gathering: Clients ping the STUN/TURN servers to find the best network path to each other.
+
+Media Stream: Once the path is found, the Opus-encoded audio packets begin flowing directly between clients (or through the relay), bypassing the Signaling Server entirely to ensure 0 latency.

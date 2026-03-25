@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: -apple-system, "Segoe UI", system-ui, sans-serif;
+  --color-bg: #0D0D0D;
+  --color-surface: #1A1A1A;
+  --color-surface-2: #222222;
+  --color-border: #2A2A2A;
+  --color-accent: #4FC3F7;
+  --color-accent-dim: #1A3A4A;
+  --color-text: #E0E0E0;
+  --color-text-secondary: #888888;
+  --color-online: #00E676;
+  --color-offline: #555555;
+  --color-danger: #EF5350;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Nova-style minimal scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+/* Utility classes */
+.nova-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.nova-input {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  color: var(--color-text);
+  padding: 10px 14px;
+  font-size: 14px;
+  outline: none;
+  width: 100%;
+  font-family: inherit;
+}
+.nova-input:focus {
+  border-color: var(--color-accent);
+}
+.nova-input::placeholder {
+  color: var(--color-text-secondary);
+}
+
+.nova-btn {
+  background: var(--color-accent);
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.nova-btn:hover { opacity: 0.9; }
+.nova-btn:disabled { opacity: 0.4; cursor: default; }
+
+.nova-btn-ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.nova-btn-ghost:hover { border-color: var(--color-accent); color: var(--color-accent); }
+
+.nova-btn-danger {
+  background: var(--color-danger);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}

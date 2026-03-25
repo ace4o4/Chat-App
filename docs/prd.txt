@@ -1,0 +1,87 @@
+Comprehensive PRD: Lightweight Cross-Platform Gamer Comm App (v2.0)
+1. Product Vision & Architecture Overview
+Objective: Develop a hyper-optimized, low-resource VoIP and text chat application for Windows and Android, functioning as a lightweight alternative to traditional gaming communication platforms.
+Core Principle: Zero-bloat. The application must prioritize active gameplay resources over its own background processes.
+
+2. Technical Stack & Agent Directives
+Frontend Framework: Split Architecture.
+- Windows Desktop: Tauri + React (.jsx) + Tailwind CSS. Must compile to a standalone native .exe using OS native webview (WebView2). Do not run as a local web server accessed via a browser.
+- Android Mobile: Native Java (Android SDK). Must compile to native .apk to strictly control background Foreground Services for Push-to-Talk and WebRTC.
+
+State Management: Zustand/Context API (React) or Native ViewModels (Android).
+
+Real-time Signaling: WebSocket (Socket.io) or MQTT.
+
+Voice Engine: WebRTC with Opus codec.
+
+Backend Services: Node.js (Express) for REST APIs; Redis for real-time presence caching; PostgreSQL for persistent user/friend data.
+
+NAT Traversal: Integration with standard STUN/TURN servers (e.g., Coturn) to ensure Windows-to-Android connections succeed across different firewalls and carrier NATs.
+
+3. Detailed Feature Specifications & User Stories
+Epic 1: Authentication & Identity
+Story 1.1: As a user, I can create an account using a simple email/password or generate a "Guest" session tied to my local device storage.
+
+Story 1.2: As a system, I must assign every user a unique discriminator (e.g., Username#1234) upon creation.
+
+Agent Directive: Use JWT (JSON Web Tokens) for stateless authentication to reduce server-side memory load.
+
+Epic 2: Friend System & Connectivity
+Story 2.1: As a user, I can add friends using their Username#1234 format.
+
+Story 2.2: As a user, I can generate a 6-character alphanumeric invite code for my voice room.
+
+Story 2.3: As a user, I can click a deep link (app://join/{code}) on Windows or Android to automatically launch the app and join the room.
+
+Agent Directive: Implement bidirectional friendship confirmation. Store relationships in an indexed relational table to ensure instant retrieval.
+
+Epic 3: Voice Mechanics & State Controls
+Story 3.1 (Mute): When toggled, the application must completely halt the capture and transmission of local audio packets to save bandwidth.
+
+Story 3.2 (Deafen): When toggled, the application must instruct the WebRTC peer/SFU to stop sending incoming audio streams, reducing incoming network traffic to zero.
+
+Story 3.3 (Push-to-Talk - Mobile): Implement a persistent, easy-to-reach UI button. Audio is strictly captured only during the onLongPress event.
+
+Story 3.4 (Push-to-Talk - Windows): Implement global keyboard hooks (e.g., Alt + V). The app must listen for this event securely while minimized in the system tray, without interrupting the active game.
+
+Epic 4: WebRTC Audio Extreme Optimization (New)
+Agent Directive: Implement these exact parameters to guarantee premium VoIP quality with minimal latency.
+
+Story 4.1 (Audio Constraints): When requesting `getUserMedia`, enforce hardware offloading:
+- `echoCancellation: true`
+- `noiseSuppression: true`
+- `autoGainControl: true`
+- `channelCount: 1` (Mono channel to halve bandwidth).
+
+Story 4.2 (Opus Codec SDP Munging): Intercept and forcibly rewrite the Local/Remote SDP strings before setting them:
+- Sample Rate: Force 48,000 Hz (Fullband audio).
+- Bitrate: Cap max average bitrate at 64,000 bps (64 kbps).
+- Forward Error Correction (FEC): Inject `useinbandfec=1` to the `a=fmtp` line to handle packet loss gracefully without robotic audio.
+- Discontinuous Transmission (DTX): Inject `usedtx=1`. Audio packets must completely halt during absolute silence to save massive amounts of data and battery.
+
+Story 4.3 (Jitter Buffer): Configure a dynamic jitter buffer to handle out-of-order packets and smooth playback during network spikes.
+
+Epic 5: Minimalist Text Messaging
+Story 5.1: Users can send real-time text messages in room channels and direct messages.
+
+Agent Directive: Implement an aggressive "Data Saver" mode by default. Strip all rich-media embeds, disable URL unfurling, and block auto-downloading of images/GIFs. Text payload must be under 1KB per message.
+
+4. UI/UX & Rendering Directives
+Strict Agent Design Rules:
+
+Aesthetic: The UI must strictly follow a hand-drawn, sketchy, or doodle illustration style.
+
+Color Palette: Use muted, pastel colors exclusively. The overall feel should be soft, cute, and minimal.
+
+Asset Management: Do not use heavy raster images (PNG/JPG). Rely entirely on vector graphics (SVG) or CSS/Native Canvas to draw UI elements.
+
+Rendering: Disable all complex animations, heavy drop shadows, and blur effects (like frosted glass). The UI must render efficiently without taxing the GPU.
+
+5. OS-Level Resource Management & Constraints
+Agent Directive: The code must be optimized at the OS level to ensure it runs on legacy or budget hardware.
+
+Memory Management: Optimize memory allocation to ensure a minimal footprint. Keep background memory strictly under 50-80 MB. Ensure data structures are small to minimize page faults and prevent the OS from relying heavily on virtual memory/swap space.
+
+Process Scheduling: Background threads handling UI updates must be suspended when the app is minimized. CPU priority should solely be given to the WebRTC audio thread.
+
+Android Battery: The app must not run persistent background polling services. Use Firebase Cloud Messaging (FCM) high-priority data messages to wake the app for incoming calls or texts. Active voice calls must use an Android Foreground Service with a clear notification.
