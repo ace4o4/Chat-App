@@ -1,7 +1,6 @@
 {
   "name": "scribble-chat-root",
   "version": "1.0.0",
-
   "scripts": {
     "install:all": "npm install --prefix backend && npm install --prefix windows-client",
     "backend": "npm run dev --prefix backend",
