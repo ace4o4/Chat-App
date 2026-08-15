@@ -7,6 +7,17 @@
     "frontend": "npm run dev --prefix windows-client",
     "start:all": "npx concurrently \"npm run backend\" \"npm run frontend\""
   },
+
+
+
+
+
+
+
+
+
+
+  
   "devDependencies": {
     "concurrently": "^8.2.2"
   }
