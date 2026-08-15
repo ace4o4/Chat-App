@@ -8,8 +8,7 @@
     "start:all": "npx concurrently \"npm run backend\" \"npm run frontend\""
   },
 
-jfm
-
+j
   
   "devDependencies": {
     "concurrently": "^8.2.2"
