@@ -8,9 +8,6 @@
     "start:all": "npx concurrently \"npm run backend\" \"npm run frontend\""
   },
 
-
-
-
 jfmyufmyh
 
   
